@@ -1,0 +1,259 @@
+// hw3.cpp : Defines the entry point for the console application.
+//
+
+#include "stdafx.h"
+#include<fstream>
+#include<string>
+#include<map>
+#include<list>
+#include<vector>
+//#include<cstdlib>
+#include<iostream>
+using namespace std;
+
+const string NOT = "~";
+const string OR = "|";
+const string AND = "&";
+const string IMPLY = "=>";
+const string Left = "(";
+const string Right = ")";
+
+struct Clause{
+	string name;
+	vector<string> arg;
+	bool is_fact;
+};
+
+typedef struct _tBINARY_TREE_  
+{  
+    int value;  
+    _tBINARY_TREE_ *lchild;  
+    _tBINARY_TREE_ *rchild;  
+}tBINARY_TREE; 
+
+map<int, string> kb;
+multimap<int, Clause> kb_supply;
+
+/*bool IsVariable(string s){
+	char c[2];
+	bool flag = false;
+	strcpy(c, s.c_str());
+	for(char i = 'a'; i <= 'z'; ++i){
+		if (c[0] == i){
+			flag = true;
+			break;
+		}
+	}
+	return flag;
+}
+vector<string> Decompose(string s){
+	vector<string> ret;
+	string::size_type loc1 = s.find('(');
+	string::size_type loc2 = s.find(')');
+	string::size_type loc3 = s.find(',', loc1+1);
+	ret.push_back(s.substr(0, loc1));
+	while(loc3 != string::npos){
+		ret.push_back(s.substr(loc1+1, loc3-loc1-1));
+		loc1 = loc3;
+		loc3 = s.find(',', loc1+1);
+	}
+	ret.push_back(s.substr(loc1+1, loc2-loc1-1));	
+	return ret;
+}
+string StandardStr(string s){
+	int size = s.size();
+	int beg, end;
+	string new_s; 
+	char *temp = new char[size];
+	strcpy(temp, s.c_str());
+	for(int i = 0;i < size; ++i){
+		if((temp[i] != '(') && (temp[i] != '~' ) ){
+			beg = i;
+			break;
+		}
+	}
+	for(int i = 0;i < size; ++i){
+		if(temp[i] == ')'){
+			end = i;
+			break;
+		}
+	}
+	for(int i = beg; i <= end; ++i){
+		new_s += temp[i];
+	}
+	return new_s;
+}
+void Str2Clause(string s, int ord){
+	string::size_type loc1 = 0, loc2 ;
+	string s_sub;
+	Clause clus;
+
+	while(((loc2 = s.find(AND, loc1)) != string::npos) || ((loc2 = s.find(OR, loc1)) != string::npos) ){
+		s_sub = s.substr(loc1, loc2);
+		s_sub = StandardStr(s_sub);
+		vector<string> arg_list = Decompose(s_sub);
+		clus.name = arg_list[0];
+		for(int i = 1; i < arg_list.size(); ++i){
+			clus.arg.push_back(arg_list[i]);
+			cout << arg_list[i] ;
+		}
+		cout << endl;
+		clus.is_var = IsVariable(arg_list[1]);
+		if(loc2 == s.find(AND, loc1)){
+			loc1 = loc2 + AND.size();
+		}
+		else{
+			loc1 = loc2 + OR.size();
+		}
+	}
+
+}*/
+/*void NegateIn(string s){
+	string::size_type loc1 = s.find(nePar);
+	string temp_str = s.substr(loc1+nePar.size(), s.size());
+}*/
+
+/*void FindPar(string s){
+	int count = 0;
+	string::size_type loc1 = s.find(Left);
+	string::size_type loc2 = s.find(Right);
+	string temp;
+	Bracket b;
+	while(loc1 != string::npos){
+		temp = s.substr(loc1+Left.size(), s.size()-loc1-Left.size());
+		b.par = Left;
+		b.ord = count;
+		++count;
+		s = temp;
+		loc1 = s.find(Left);
+	}
+	while(loc2 != string::npos){
+			temp = s.substr(loc1+Right.size(), s.size()-loc1-Right.size());
+			b.par = Right;
+			b.ord = count;
+			--count;
+	}
+
+}*/
+
+inline string update_str(string s){
+	string new_s;
+	string::size_type loc1 = s.find(AND);
+	string::size_type loc2 = s.find(OR);
+	string::size_type loc3 = s.find(NOT);
+	if(loc1 != string::npos || loc2 != string::npos || loc3 != string::npos){
+		new_s = "(" + s + ")";
+	}
+	else{
+		new_s = s;
+	}
+	return new_s;
+}
+
+string delete_imply(string s, string::size_type loc){
+	string premise, conclusion;
+
+	premise = s.substr(0, loc);
+	conclusion = s.substr(loc+IMPLY.size(), s.size()-loc-IMPLY.size());
+	premise = update_str(premise);
+	conclusion = update_str(conclusion);
+	s = NOT + premise + OR + conclusion;
+	cout << s << endl;
+	return s;
+}
+
+
+string move_not_inward(string s, string::size_type loc2, string::size_type loc3){
+	if(loc2 == string::npos ){
+		return s;
+	}
+	else if(loc3 != loc2+NOT.size()){
+		return s;
+	}
+	string new_s = s.substr(loc+NOT.size(), s.size()-loc-NOT.size());
+	string::size_type loc1= new_s.find(Left);
+	string::size_type loc2= new_s.find(Right);
+	int is_in_bracket = 0;
+	while(loc1 != string::npos || loc2 != string::npos){
+		if(loc1 != string::npos){
+			++is_in_bracket;
+		}
+		if(loc2 != string::npos){
+			--is_in_bracket;
+		}
+		if(!(is_in_bracket)){
+			new_s = s.substr(loc+NOT.size(), loc2-loc-NOT.size());
+
+			move_not_inward(new_s);
+		}
+	}
+	
+	
+
+}
+
+void ConvertCNF(string s){
+	string::size_type loc1 = s.find(IMPLY);
+	if(loc1 != string::npos){
+		s = delete_imply(s, loc1);
+	}
+	string::size_type loc2 = s.find(NOT);
+	string::size_type loc3 = s.find(Left);
+	//s = move_not_inward(s, loc2, loc3);
+}
+void Tell(string s, int ord){
+	ConvertCNF(s);
+	/*string::size_type loc1 = s.find(IMPLY); 
+	string premise, conclusion;
+
+	if(loc1 != string::npos){
+		premise = s.substr(0, loc1);
+		conclusion = s.substr(loc1+IMPLY.size(), s.size()-loc1-IMPLY.size());
+		premise = UpdateStr(premise);
+		conclusion = UpdateStr(conclusion);
+		s = NOT + premise + OR + conclusion;
+		cout << s << endl;
+	}*/
+	
+	//kb.insert(pair<int, string>(ord, s));
+	//Str2Clause(s, ord);
+}
+
+bool Ask(string q){
+	bool flag = true;
+	return flag;
+}
+
+int main(){
+	ifstream input("input.txt");
+	ofstream output("output.txt");
+	
+	string str;
+	getline(input, str);
+	int nq = atoi(str.c_str());
+	string *query = new string[nq];
+	string s;
+	for(int i = 0; i < nq; ++i){
+		getline(input, query[i]);
+	}
+	getline(input, str);
+	int ns = atoi(str.c_str());
+	string *sentence = new string[ns];
+	for(int i = 0; i < ns; ++i){
+		getline(input, sentence[i]);
+		Tell(sentence[i], i);
+	}
+
+	bool result;
+	for(int i = 0; i < nq; ++i){
+		result = Ask(query[i]);
+		if(result){
+			output << "TRUE" << endl;
+		}
+		else{
+			output << "FALSE" << endl;
+		}
+	}
+
+	return 0;
+}

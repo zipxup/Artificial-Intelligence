@@ -1,0 +1,522 @@
+// hw3.cpp : Defines the entry point for the console application.
+//
+
+#include "stdafx.h"
+#include<fstream>
+#include<string>
+#include<map>
+#include<list>
+#include<vector>
+#include<iostream>
+using namespace std;
+
+//const string NOT = "~";
+//const string OR = "|";
+//const string AND = "&";
+//const string IMPLY = "=>";
+//const string Left = "(";
+//const string Right = ")";
+
+struct Clause{
+	string name;
+	vector<string> args;
+};
+
+struct Tree{
+	string value;
+	Tree *tLeft;
+	Tree *tRight;
+	Tree(Tree* t): value(t->value), tLeft(t->tLeft), tRight(t->tRight){ }
+	Tree(): value(""), tLeft(NULL), tRight(NULL) { }
+};
+
+bool and_or = true;
+string cnf_rule = "";
+multimap<char*, Clause> kb_rule;
+multimap<char*, Clause> kb_fact;
+multimap<string, char*> kb_cnf;
+//map<int, string> kb;
+//multimap<int, Clause> kb_supply;
+//map<string, list<string> >rule_predicate;
+//multimap<string, list<string> >fact_predicate;
+
+void distinguish_letters(list<string> letters, char* current){
+	string let;
+	list<string> var_list;
+	list<string> const_list;
+	string pred_name = "";
+	string var = "";
+	string constant = "";
+	Clause clus;
+
+	while(!letters.empty()){
+		let = letters.front();
+		const char *c = let.c_str();
+		if(isupper(c[0]) && c[let.size()-1] == '('){
+			for(int i = 0; i < let.size()-1; ++i){
+				pred_name += c[i];
+			}
+			clus.name = pred_name;
+		}
+		if(islower(c[0])){
+			for(int i = 0; i < let.size()-1; ++i){
+				var += c[i];
+			}
+			var_list.push_back(var);
+			var = "";
+		}
+		if(isupper(c[0]) && c[let.size()-1] != '('){
+			for(int i = 0; i < let.size()-1; ++i){
+				constant += c[i];
+			}
+			const_list.push_back(constant);
+			constant = "";
+		}
+		if(c[let.size()-1] == ')'){
+			if(var_list.empty() && isupper(c[0])){
+				while(!const_list.empty()){
+					clus.args.push_back(const_list.front());
+					const_list.pop_front();
+				}
+				kb_fact.insert(pair<char*, Clause>(current, clus));
+			}
+			else{
+				while(!var_list.empty()){
+					clus.args.push_back(var_list.front());
+					var_list.pop_front();
+				}
+				kb_rule.insert(pair<char*, Clause>(current, clus));
+			}
+			pred_name = "";
+			clus.name = "";
+			clus.args.clear();
+		}
+		letters.pop_front();
+	}
+}
+void find_letters(char* current){
+	//const char *c = s.c_str();
+	list<string> letters;
+	for(int i = 0; i < strlen(current); ){
+		int beg = 0, end = 0;
+		if(isalpha(current[i])){
+			beg = i;
+			for(int j = i;;++j){
+				if(ispunct(current[j])){
+					end = j;
+					break;
+				}
+			}
+			string let = "";
+			for(int k = beg; k <= end; ++k){
+				let += current[k];
+			}
+			letters.push_back(let);
+			i = end + 1;
+		}
+		else ++i;
+	}
+	distinguish_letters(letters, current);
+}
+
+string fol_to_pl(string s){
+	const char *c = s.c_str();
+	string new_s = "";
+	for(int i = 0; i < s.size();){
+		if(c[i] == '(' && islower(c[i+1])){
+			int j;
+			for(j = i; j < s.size(); ++j){
+				if(c[j] == ')')
+					break;
+			}
+			i = j +1;
+		}
+		else{
+			new_s += c[i];
+			++i;
+		}
+	}
+	//cout << new_s << endl;
+	return new_s;
+}
+
+
+int find_split(const char *c, int start, int end){
+	int tag = -1;
+	int pair = 0, count = 0;
+	int loc = -1;
+	for(int i = start; i <= end; ++i){
+		if(c[i] == '('){
+			++pair;
+			++count;
+		}
+		if(c[i] == ')'){
+			--pair;
+		}
+		if(pair == 0 && count != 0){
+			loc = i;
+			break;
+		}
+	}
+	if(loc == end && c[start] == '(' && c[end] == ')'){
+		++start;
+		--end;
+	}
+
+	int is_in_braket = 0;  
+	int more_grade = 0;  
+	for (int i = start; i <= end; i++)  
+	{  
+		if (c[i] == '(')  
+			++is_in_braket;  
+		else if (c[i] == ')')  
+			--is_in_braket;  
+
+		if ((c[i] == '|' || c[i] == '='|| c[i] =='&' )  && is_in_braket == 0)  
+		{  
+			more_grade = 1;  
+			tag = i;
+		}  
+		else if ((c[i] == '~')  && more_grade == 0  && is_in_braket == 0)  
+		{  
+			tag = i; 
+		}  
+	}  
+	return tag; 
+}
+Tree *create_tree(const char *c, int start, int end){
+	Tree *pTree = NULL;
+	bool flag = true;
+	for(int i = start; i <= end; ++i){
+		if(c[i] == '~' || c[i] == '&' || c[i] == '|' || c[i] == '='){
+			flag = false;
+			break;
+		}
+	}
+
+	if(flag){
+		pTree = new Tree;
+		if(c[start] == '(' && c[end] == ')'){
+			++start;
+			--end;
+		}
+		for(int i = start; i <= end; ++i){
+			pTree->value += c[i];
+		}
+		//cout << pTree->value << endl ;
+		pTree->tLeft = NULL;
+		pTree->tRight = NULL;
+	}
+	else{
+		int tag = find_split(c, start, end);
+		//cout << c[tag] << endl;
+		pTree = new Tree;
+		pTree->value = c[tag];
+		int pair = 0, count = 0;
+		int loc = -1;
+		for(int i = start; i <= end; ++i){
+			if(c[i] == '('){
+				++pair;
+				++count;
+			}
+			if(c[i] == ')'){
+				--pair;
+			}
+			if(pair == 0 && count != 0){
+				loc = i;
+				break;
+			}
+		}
+		if(loc == end && c[start] == '(' && c[end] == ')'){
+			++start;
+			--end;
+		}
+		//cout << start << " " << end << endl;
+		if(c[tag] == '='){
+			pTree->value += c[tag+1];
+			pTree->tLeft = create_tree(c, start, tag-1);
+			pTree->tRight = create_tree(c, tag+2, end);
+		}
+		else if(c[tag] == '~'){
+			pTree->tLeft = NULL;
+			pTree->tRight = create_tree(c, tag+1, end);
+		}
+		else{
+			pTree->tLeft = create_tree(c, start, tag-1);
+			pTree->tRight = create_tree(c, tag+1, end);
+		}
+	}
+	return pTree;
+}
+
+int compare_prior(string op1, string op2){
+	const char *temp = op2.c_str();
+	if(isalpha(temp[0])){
+		return 0;
+	}
+	else{
+		if(op2 == "~"){
+			return 0;
+		}
+		else if(op1 == "&" && op2 == "&"){
+			return 0;
+		}
+		else if(op1 == "|" && op2 == "|"){
+			return 0;
+		}
+		else 
+			return 1;
+	}
+}
+void print_tree(Tree *pTree){
+	int flag_l = 0, flag_r = 0;  
+    if (pTree != NULL){  
+        int ret;  
+        if (pTree->tLeft != NULL) {  
+            ret = compare_prior(pTree->value, pTree->tLeft->value);  
+            if (ret == 1){  
+                cout << '('; 
+				cnf_rule += "(";
+                flag_l = 1;  
+            }  
+        }  
+        print_tree(pTree->tLeft);  
+        if (flag_l == 1){  
+            cout << ')';
+			cnf_rule += ")";
+            flag_l = 0;  
+        }  
+  
+        cout << pTree->value; 
+		cnf_rule += pTree->value;
+  
+        if (pTree->tRight != NULL){  
+            ret = compare_prior(pTree->value, pTree->tRight->value);  
+            if (ret == 1){  
+				cout << '(';  
+				cnf_rule += "(";
+                flag_r = 1;  
+            }  
+        }  
+        print_tree(pTree->tRight);  
+        if (flag_r == 1){  
+            cout <<  ')'; 
+			cnf_rule += ")";
+            flag_r = 0;  
+        }  
+    }  
+}
+Tree *delete_imply(Tree *pTree){
+	Tree *temp = NULL;
+	if(pTree != NULL){
+		if(pTree->value == "=>"){
+			pTree->value = "|";
+			temp = new Tree(pTree->tLeft);
+			pTree->tLeft->value = "~";
+			pTree->tLeft->tLeft = NULL;
+			pTree->tLeft->tRight = temp;
+		}
+		delete_imply(pTree->tLeft);
+		delete_imply(pTree->tRight);
+	}
+	return pTree;
+}
+
+Tree *move_not_inward(Tree *pTree){
+	Tree *temp = NULL; 
+	if(pTree != NULL){
+		if(pTree->value == "~"){
+			pTree->tLeft = new Tree;
+			if(pTree->tRight->value == "&" || pTree->tRight->value == "|"){
+				temp = new Tree(pTree->tRight);
+				if(temp->value == "&"){
+					pTree->value = "|";
+				}
+				else if (temp->value == "|"){
+					pTree->value = "&";
+				}
+				pTree->tLeft->value = "~";
+				pTree->tLeft->tLeft = NULL;
+				pTree->tLeft->tRight = temp->tLeft;
+				pTree->tRight->value = "~";
+				pTree->tRight->tLeft = NULL;
+				pTree->tRight->tRight = temp->tRight;
+			}
+			else if(pTree->tRight->value == "~"){
+				temp = new Tree(pTree->tRight->tRight);  
+				pTree->value = temp->value; // cannot pTree = temp, because the address of pTree will change, the ancestor of pTree don't know the address has been changed.
+				pTree->tLeft = temp->tLeft;
+				pTree->tRight = temp->tRight;
+			}
+			else{
+				pTree->tLeft = NULL;
+			}
+		}
+		move_not_inward(pTree->tLeft);
+		move_not_inward(pTree->tRight);	
+	}
+	return pTree;
+}
+
+Tree *distribute_and_over_or(Tree *pTree){
+	Tree *temp1 = NULL, *temp2 = NULL, *temp3 = NULL, *temp4 = NULL;
+	if(pTree != NULL){
+		if(pTree->value == "|"){
+			if(pTree->tLeft->value == "&"){
+				temp1 = new Tree(pTree->tRight);
+				temp2 = new Tree(pTree->tLeft->tRight);
+				temp3 = new Tree(temp1);
+				temp4 = new Tree(pTree->tLeft->tLeft);
+
+				pTree->value = "&";
+				pTree->tLeft = new Tree;
+				pTree->tLeft->value = "|";
+				pTree->tLeft->tRight = temp1;
+				pTree->tLeft->tLeft = temp4;
+				pTree->tRight = new Tree;
+				pTree->tRight->value = "|";
+				pTree->tRight->tLeft = temp2;
+				pTree->tRight->tRight = temp3;
+				and_or = true;
+			}
+			else if (pTree->tRight->value == "&"){
+				temp1 = new Tree(pTree->tLeft);
+				temp2 = new Tree(pTree->tRight->tLeft);
+				temp3 = new Tree(temp1);
+				temp4 = new Tree(pTree->tRight->tRight);
+
+				pTree->value = "&";
+				pTree->tLeft = new Tree;
+				pTree->tLeft->value = "|";
+				pTree->tLeft->tLeft = temp3;
+				pTree->tLeft->tRight = temp2 ;
+				pTree->tRight = new Tree;
+				pTree->tRight->value = "|";
+				pTree->tRight->tLeft = temp1;
+				pTree->tRight->tRight = temp4;
+				and_or = true;
+			}
+		}
+		distribute_and_over_or(pTree->tLeft);
+		distribute_and_over_or(pTree->tRight);
+	}
+	return pTree;
+}
+
+string to_cnf(string s){
+	//s = fol_to_pl(s);
+	//cout << s << endl;
+	string temp = "";
+	const char* c = s.c_str();
+	for(int i = 0; i < s.size(); ++i){   // eliminate space, which may cause problems
+		if(c[i] != ' '){
+			temp += c[i];
+			//cout << temp << endl;
+		}
+	}
+	//cout << temp << temp.size()<<  endl;
+	c = temp.c_str();
+	Tree *pTree = create_tree(c, 0, temp.size()-1);
+	//cout << pTree->value;
+	//s = delete_imply(pTree);
+	pTree = delete_imply(pTree);
+	//cout << endl;
+	//print_tree(pTree);
+	pTree = move_not_inward(pTree);
+	while(and_or){
+		and_or = false;
+		pTree = distribute_and_over_or(pTree);
+	}
+	and_or = true;
+	print_tree(pTree);
+	cout << endl;
+	// split cnf by "&"
+	const char *t_cnf = cnf_rule.c_str();
+	char *cnf = new char[strlen(t_cnf)+1];
+	strcpy_s(cnf, strlen(t_cnf)+1, t_cnf);
+	//cout << cnf_rule << endl;
+	const char *d = "&";              
+	char *next_token = NULL; 
+	char *strToken = strtok_s(cnf, d, &next_token);
+	while(strToken != NULL)
+    {
+        //cout << strToken << endl;
+		kb_cnf.insert(pair<string, char*>(s, strToken));
+        strToken = strtok_s(NULL,d, &next_token);
+    }
+	cnf_rule = "";
+	//cout << endl;
+	multimap<string, char*>::const_iterator it;
+	char* current = "";
+	for(it = kb_cnf.begin(); it != kb_cnf.end(); ++it){
+		current = it->second;
+		//if(previous != current){
+			//cout << sentence[current] <<endl;
+			//sentence[current] = to_cnf(sentence[current]);
+			find_letters(current);
+		//}
+		//previous = current;
+	}
+	
+	return s;
+}
+
+
+bool ask(string q){
+	bool flag = true;
+	return flag;
+}
+
+int main(){
+	ifstream input("input.txt");
+	ofstream output("output.txt");
+
+	string str;
+	getline(input, str);
+	int nq = atoi(str.c_str());
+	string *query = new string[nq];
+	string s;
+	for(int i = 0; i < nq; ++i){
+		getline(input, query[i]);
+	}
+	getline(input, str);
+	int ns = atoi(str.c_str());
+	string *sentence = new string[ns];
+	for(int i = 0; i < ns; ++i){
+		getline(input, sentence[i]);
+		//find_letters(sentence[i], i);
+		to_cnf(sentence[i]);
+	}
+	/*multimap<int, Clause>::const_iterator it;
+	int previous = -1, current;
+	for(it = kb_rule.begin(); it != kb_rule.end(); ++it){
+		current = it->first;
+		if(previous != current){
+			//cout << sentence[current] <<endl;
+			sentence[current] = to_cnf(sentence[current]);
+		}
+		previous = current;
+	}*/
+	/*multimap<int, Clause>::const_iterator it1; 
+	for (it1 = kb_rule.begin(); it1 != kb_rule.end(); ++it1){
+	cout << it1 ->first << " " << it1->second.name;
+	for(int i = 0; i < it1->second.args.size(); ++i){
+	cout << it1->second.args[i];
+	}
+	cout << endl;
+	}
+	cout << endl;*/
+
+	bool result;
+	for(int i = 0; i < nq; ++i){
+		result = ask(query[i]);
+		if(result){
+			output << "TRUE" << endl;
+		}
+		else{
+			output << "FALSE" << endl;
+		}
+	}
+
+	return 0;
+}

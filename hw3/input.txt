@@ -1,0 +1,66 @@
+6
+F(Bob)   f
+H(John)   t
+~H(Alice)  t 
+~H(John)   f
+G(Bob)     f 
+G(Tom)   t
+14
+A(x) => H(x)
+D(x,y) => ~H(y)
+B(x,y) & C(x,y) => A(x) 
+B(John,Alice)
+B(John,Bob)
+(D(x,y) & Q(y)) => C(x,y) 
+D(John,Alice) 
+Q(Bob)
+D(John,Bob)
+F(x) => G(x)
+G(x) => H(x)
+H(x) => F(x)
+R(x) => H(x)
+R(Tom)
+
+
+
+2
+Ancestor(Liz,Billy)
+Ancestor(Liz,Bob)
+6
+Mother(Liz,Charley)
+Father(Charley,Billy)
+~Mother(x,y) | Parent(x,y)
+~Father(x,y) | Parent(x,y)
+~Parent(x,y) | Ancestor(x,y)
+~(Parent(x,y) & Ancestor(y,z)) | Ancestor(x,z)
+
+1
+Kills(Curiosity, Tuna)
+7
+Dog(D)
+Owns(Jack, D)
+((Dog(y) & Owns(x,y)) => AnimalLover(x))
+(~((AnimalLover(x) & Animal(y)) & Kills(x,y) ) )
+Kills(Jack, Tuna) | Kills(Curiosity, Tuna)
+Cat(Tuna)
+(Cat(x) => Animal(x))
+
+12
+F(A,B)
+~F(A,B)
+F(A,C)
+~F(A,C)
+F(A,D)
+~F(A,D)
+F(B,A)
+~F(B,A)
+F(C,A)
+~F(C,A)
+F(D,A)
+~F(D,A)
+5
+F(x,y)=>F(y,x)
+F(x,y)&F(y,z)=>F(x,z)
+F(A,B)
+F(B,C)
+F(C,D)
