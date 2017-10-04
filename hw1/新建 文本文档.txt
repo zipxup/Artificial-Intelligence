@@ -1,0 +1,153 @@
+// hw1.cpp : Defines the entry point for the console application.
+//
+
+#include "stdafx.h"
+#include<fstream>
+#include<iostream>
+#include<string>
+#include<vector>
+#include<queue>
+#include<algorithm>
+
+using namespace std;
+
+struct Node_data{
+	string state;
+	string child;
+	int depth;
+	int path_cost;
+	int estimated_cost;
+};
+string startState;
+string goalState;
+int numLiveTraffic;
+int numSundayTraffic;
+int accTime;
+
+/*Breadth-First Search*/
+int BFS(){
+	Node_data node, childNode;
+	queue<string> frontier, explored, temp_frontier, temp_explored;
+
+	bool state_frontier = false;
+	bool state_explored = false;
+	string temp; // temporary varaible to store strings from input 
+	int tnum;  // temporary varaible to store numbers from input 
+
+	ifstream input("input.txt");
+	ofstream output("output.txt");
+	input >> temp;  //ignore the first row, since it's the algorithm name
+	input >> startState;  //assignment of startState;
+	input >> goalState;   //assignment of goalState;
+	input >> numLiveTraffic;  //assignment of numLiveTraffic;
+
+	if(startState == goalState){
+		accTime = 0;
+		output << startState << " " << accTime;
+		return 0;
+	}
+
+	input >> node.state; //it is the first string in file,as well as the start state.
+	node.depth = 0;
+	node.path_cost = 1;
+	frontier.push(node.state);
+
+	for(int i = 0; i < numLiveTraffic; ++i){
+		if(frontier.empty())
+			return -1;
+		node.state = frontier.front();
+		frontier.pop();
+		explored.push(node.state);
+		if (i != 0){
+			input >> node.state;
+			temp_frontier = frontier;
+			while(!temp_frontier.empty()){
+				if(node.state != temp_frontier.front())
+					temp_frontier.pop();
+				else { 
+					state_frontier = true;
+					break;
+				}
+			}
+			temp_explored = explored;
+			while(!temp_explored.empty()){
+				if(node.state != temp_explored.front())
+					temp_explored.pop();
+				else {
+					state_explored = true;
+					break;
+				}
+			}
+			if (!state_frontier && !state_explored){
+				frontier.push(node.state);
+				node.path_cost = 1;
+			}
+		}
+		input >> childNode.state;		
+		temp_frontier = frontier;
+		while(!temp_frontier.empty()){
+			if(childNode.state != temp_frontier.front())
+				temp_frontier.pop();
+			else { 
+				state_frontier = true;
+				break;
+			}
+		}
+		temp_explored = explored;
+		while(!temp_explored.empty()){
+			if(childNode.state != temp_explored.front())
+				temp_explored.pop();
+			else {
+				state_explored = true;
+				break;
+			}
+		}
+		if(childNode.state == goalState){
+			output << childNode.state << " " << accTime << endl;
+			return 0;
+		}
+		if (!state_frontier && !state_explored){
+			frontier.push(childNode.state);
+			node.child = childNode.state;
+			childNode.path_cost = 1;
+		}
+		input >> tnum; //throw path_cost in file;
+
+	}
+	while(!explored.empty()){
+		output << explored.front() << " " << accTime << endl;
+		explored.pop();
+		++accTime;
+	}
+	input.close();
+	output.close();
+	return  0;
+}
+
+/*Depth-First Search*/
+void DFS(){
+}
+
+/*Uniform-Cost Search*/
+void UCS(){
+}
+
+/*A* Search*/
+void AStar(){
+}
+
+int main(){
+	ifstream input( "input.txt" ); 
+	string  algo;  
+	input >> algo; 
+	input.close();
+	if (algo == "BFS")
+		BFS();
+	else if (algo == "DFS")
+		DFS();
+	else if (algo == "UCS")
+		UCS();
+	else if (algo == "A*")
+		AStar();
+	return 0;
+}

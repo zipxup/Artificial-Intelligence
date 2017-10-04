@@ -1,0 +1,547 @@
+BFS, DFS, UCS, A*
+JordanHome
+StaplesCenter
+8
+JordanHome CA73/NewportCoastDr 5
+CA73/NewportCoastDr I405/CA73 10
+I405/CA73 I110/I405 25
+I110/I405 I10/I110 20
+I10/I110 I110/I405 30
+I10/I110 I10/I405 9
+I105/I110 I10/I110 7
+I10/I110 StaplesCenter 3
+8
+JordanHome 55
+CA73/NewportCoastDr 50
+I405/CA73 40
+I110/I405 28
+I10/I110 8
+I10/I405 39
+I105/I110 23
+StaplesCenter 0
+
+BFS, DFS
+A
+G
+7
+A B 3
+B C 4 
+C D 2
+B E 3
+E G 5
+A F 1
+F G 2
+7
+A 1
+B 2
+C 3
+D 4
+E 2
+F 3
+G 1
+
+BFS
+A
+D
+4
+A B 5
+A C 3
+B D 1
+C D 2
+4 
+A 4 
+B 1
+C 1
+D 0
+
+DFS
+A
+H
+12
+A B 1
+B C 1
+C D 1
+A E 10
+E F 2
+F G 3
+G H 3
+A I 1
+I J 1
+J K 1
+K L 1
+L H 1
+12
+A 12
+B 11
+C 10
+D 9
+E 8
+F 7
+G 6
+H 0
+I 6
+J 5 
+K 4
+L 3
+
+DFS
+Andy
+Zoe
+10
+Andy Bill 4
+Andy Claire 3
+Andy Daniel 2
+Bill Elain 3
+Bill Zoe 1
+Claire Elain 4
+Claire Zoe 2
+Daniel Elaine 2
+Daniel Zoe 2
+Elaine Zoe 2
+6
+Andy 5
+Bill 4
+Claire 6 
+Daniel 4
+Elaine 3
+Zoe 0
+
+UCS
+A
+G
+6
+A B 2
+A C 3
+B D 3
+C E 2
+D G 1
+E G 1
+6
+A 6
+B 3
+C 2
+D 1
+E 1
+G 0
+
+A*
+A
+D
+4
+A B 3
+A C 3
+B D 2
+C D 1
+4
+A 4
+B 2
+C 1
+D 0
+
+BFS, DFS, UCS, A*
+S
+G
+15
+S A 7
+S B 5
+S C 1
+C D 1
+B G 3
+B H 4
+B A 9
+A F 9
+A E 8
+D B 1
+H G 4
+F G 2
+E G 9
+I G 2
+G I 0
+10
+S 6
+A 10
+B 1 
+C 5
+D 2
+G 0
+H 15
+F 1
+E 8
+I 1
+
+UCS
+A
+C
+4
+A B 1
+B D 2
+D C 2
+A C 5
+4
+A 6
+B 3
+C 2
+D 1
+
+Arad
+Bucharest
+23
+Arad Zerind 75
+Arad Timisoara 118
+Arad Sibiu 140
+Zerind Oradea 71
+Timisoara Lugoj 111
+Sibiu Fagaras 99
+Sibiu Rimnicu 80
+Oradea Sibiu 151
+Lugoj Mehadia 70
+Fagaras Bucharest 211
+Rimnicu Craiova 146
+Rimnicu Pitesti 97
+Mehadia Drobeta 75
+Craiova Pitesti 138
+Pitesti Bucharest 101
+Drobeta Craiova 120
+Bucharest Giurgiu 90
+Bucharest Urziceni 85
+Urziceni Vaslui 142
+Urziceni Hirsova 98
+Vaslui Iasi 92
+Hirsova Eforie 86
+Iasi Neamt 87
+20
+Arad 366
+Bucharest 0
+Craiova 160
+Drobeta 242
+Eforie 161
+Fagaras 176
+Giurgiu 77
+Hirsova 151
+Iasi 226
+Lugoj 244
+Mehadia 241
+Neamt 234
+Oradea 380
+Pitesti 100
+Rimnicu 193
+Sibiu 253
+Timisoara 329
+Urziceni 80
+Vaslui 199
+Zerind 374
+
+BFS
+A
+D
+4
+B D 4
+A B 2
+A C 3
+C D 2
+4
+A 5
+B 3
+C 2
+D 0
+
+UCS
+A
+F
+4
+A C 3
+A D 1
+D F 3
+C F 1
+4
+A 5
+C 3
+D 2
+F 0
+
+UCS
+A
+D
+4
+A B 5
+A C 3
+B D 1
+C D 2
+4
+A 5
+B 3
+C 2
+D 0
+
+UCS
+A
+F
+6
+A B 1
+A C 2
+B D 2
+C E 1
+D F 1
+E F 1
+6
+A 5
+B 4
+C 3
+D 3
+E 2
+F 0
+
+UCS
+A
+G 
+6
+A B 1
+A D 2
+B C 1
+D F 1
+C F 1 
+F G 1
+6
+A 6
+B 5
+C 4
+D 3
+F 2
+G 0
+
+BFS, DFS
+S
+Z
+8
+S A 1
+S B 1
+B C 1
+A C 1
+C E 1
+C D 1
+D Z 1
+E Z 1
+7
+S 7
+A 6
+B 5
+C 4
+E 3
+D 2 
+Z 0
+
+A*
+S
+G
+12
+S A 2
+S B 3
+S C 6
+A E 3
+B E 4
+B D 2
+B C 2
+C D 1
+C G 3
+E F 2
+D G 4
+F G 5
+8
+S 9
+A 8
+B 5
+C 2
+E 5
+D 1
+F 3
+G 0
+
+DFS, UCS
+S
+G
+8
+S A 1
+S G 12
+A C 1
+A B 3
+B D 3
+C D 1
+C G 2
+D G 3
+6
+S 9
+A 8
+B 5
+C 2
+D 1
+G 0
+
+DFS
+A
+Z
+6
+A B 1
+B C 1
+C B 1
+B D 1
+C D 1
+D Z 1
+5
+A 4
+B 3
+C 3
+D 2
+Z 0
+
+UCS
+A
+G 
+10
+A B 1
+A C 2
+A H 3
+B D 5
+C E 3
+C F 3
+H D 2
+D G 1
+E G 1
+F G 1
+8
+A 1
+B 1
+C 1
+D 1
+E 1
+F 1
+H 1
+G 1
+
+UCS 
+A 
+E 
+6
+A B 1
+A C 3
+A D 2
+B C 1
+C E 1
+D E 1
+5
+A 1
+B 1
+C 1
+D 1
+E 1
+
+DFS 
+A 
+Z 
+6
+A B 1
+B C 1
+B D 1
+C B 1
+C D 1
+D Z 1
+5
+A 1
+B 1
+C 1
+D 1
+Z 1
+
+DFS 
+A
+E
+7
+A B 1
+A F 1
+B C 1
+C D 1
+D E 1 
+F E 1
+F G 1
+7
+A 1
+B 1
+C 1 
+D 1 
+E 1
+F 1
+G 1
+
+UCS
+A
+E
+6
+A B 1
+A C 3
+A D 3
+B C 2
+C E 1
+D E 1
+5
+A 1
+B 1
+C 1
+D 1
+E 1
+
+DFS 
+A 
+Z 
+7
+A B 1
+B A 1
+B C 1
+B D 1
+C B 1
+C D 1
+D Z 1
+5
+A 1
+B 1
+C 1
+D 1
+Z 1
+
+A*
+S
+G
+10
+S A 7
+S B 5
+S C 1
+A G 4
+B H 4
+C D 1
+H G 4
+D B 2
+D F 1
+F H 4
+8
+S 6
+A 10
+B 1
+C 5
+D 2
+F 1
+H 9
+G 0
+
+A*
+A 
+E
+5
+A B 3
+A C 1
+B D 2
+C D 2
+D E 8
+5
+A 1 
+B 2
+C 9
+D 3 
+E 0

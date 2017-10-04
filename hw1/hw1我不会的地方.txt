@@ -1,0 +1,16 @@
+不会：
+1. C++, TXT文件逐词读取
+2. C++, BFS--FIFO queue, queue的实现
+3. C++, DFS--LIFO queue, stack的实现
+
+思路：
+1. 从input.txt中读取文件
+   逐词读取：ifstream fin( "data.txt" );  
+	     string  s;
+             fin >> s;
+   逐行读取： ifstream fin( "data.txt" );  
+	      string  s;  
+	      getline(fin,s) 
+2. 从第一行读取单词中辨认search算法类型，是否是BFS, DFS, UCS, A*
+3. BFS：如何让电脑知道A是B的parent node， B和C是cousin node.
+        思路：引用node.depth, node.parent.

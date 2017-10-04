@@ -1,0 +1,197 @@
+// Program to print BFS traversal from a given source vertex. BFS(int s) 
+// traverses vertices reachable from s.
+#include "stdafx.h"
+#include<fstream>
+#include<string>
+#include<iostream>
+#include <list>
+#include<vector>
+//#include<stack>
+
+#define INFINITY 32767
+using namespace std;
+
+struct Node_data{
+	string state;
+	int estimated_cost;
+};
+
+// This class represents a directed graph using adjacency list representation
+class Graph
+{
+	int V;    // No. of vertices
+	list<int> *adj;    // Pointer to an array containing adjacency lists
+public:
+	Graph(int V);  // Constructor
+	int LocateString(Node_data nodes[], string s);
+	//string LocateNum(Node_data nodes[], int num);
+	void addEdge(int **arcs, int v, int w, int g); // function to add an edge to graph
+	int FirstVex(int **arcs, int s);
+	int NextVex(int **arcs, int i, int j);
+	bool BFS(int **arcs, Node_data nodes[], int startNum, int goalNum);  // prints BFS traversal from a given source s
+};
+
+Graph::Graph(int V)
+{
+	this->V = V;
+	adj = new list<int>[V];
+}
+
+int Graph::LocateString(Node_data nodes[], std::string s){
+	for(int i = 0; i < V; ++i){
+		if(s == nodes[i].state)
+			return i;
+	}
+	return -1;
+}
+
+/*string Graph::LocateNum(Node_data nodes[], int num){
+	return nodes[num].state;
+}*/
+
+void Graph::addEdge(int **arcs, int v, int w, int g)
+{
+	adj[v].push_back(w); // Add w to v¡¯s list.
+	arcs[v][w] = g;
+
+}
+
+int Graph::FirstVex(int **arcs, int s){
+	for(int i = 0; i < V; ++i)
+		if (arcs[s][i] != INFINITY)
+			return i;
+	return -1;
+}
+
+int Graph::NextVex(int **arcs, int i, int j){
+	for(int k = j + 1; k < V; ++k )
+		if(arcs[i][k] != INFINITY)
+			return k;
+	return -1;
+}
+
+bool Graph::BFS(int **arcs, Node_data nodes[], int startNum, int goalNum)
+{
+	// Mark all the vertices as not visited
+	ofstream output("output.txt");
+	bool *visited = new bool[V];
+	int time = 0;
+	for(int i = 0; i < V; i++)
+		visited[i] = false;
+
+	// Create a queue for BFS
+	list<int> queue;
+
+	// Mark the current node as visited and enqueue it
+	visited[startNum] = true;
+	queue.push_back(startNum);
+
+	// 'i' will be used to get all adjacent vertices of a vertex
+	//list<int>::iterator i;
+
+	//stack<string> solution;
+
+	while(!queue.empty())
+	{
+		// Dequeue a vertex from queue and print it
+		startNum = queue.front();
+		cout << startNum << endl;
+		string tempState = nodes[startNum].state;
+		output << tempState << " " << time << endl;
+		++time;
+		queue.pop_front();
+
+		// Get all adjacent vertices of the dequeued vertex s
+		// If a adjacent has not been visited, then mark it visited
+		// and enqueue it
+		for(int w = FirstVex(arcs, startNum); w >= 0 ; w = NextVex(arcs, startNum, w)){
+			if(!visited[w]){ 
+				if(w == goalNum){
+					cout << w << endl;
+					string tempState = nodes[w].state;
+					output << tempState << " " << time << endl;
+					return true;
+				}
+				visited[w]=true;
+				queue.push_back(w);
+			}
+		}
+		/*for(i = adj[s].begin(); i != adj[s].end(); ++i)
+		{
+		if(!visited[*i])
+		{
+		visited[*i] = true;
+		queue.push_back(*i);
+		}
+		}*/
+	}
+	return false;
+}
+
+// Driver program to test methods of graph class
+int main()
+{
+	// Create a graph given in the above diagram
+	ifstream input("input.txt");
+	string algo;
+	input >> algo;
+	string startState;
+	input >> startState;
+	string goalState;
+	input >> goalState;
+	int numLiveTraffic;
+	input >> numLiveTraffic;
+
+	vector<string> b_path;
+	vector<string> e_path ;
+	vector<int> path_cost;
+	string temp;
+	int tnum;
+	for(int i = 0; i < numLiveTraffic; ++i){
+		input >> temp;
+		b_path.push_back(temp);
+		input >> temp;
+		e_path.push_back(temp);
+		input >> tnum;
+		path_cost.push_back(tnum);
+	}
+
+	int numSundayTraffic;
+	input >> numSundayTraffic;
+	Node_data* nodes = new Node_data[numSundayTraffic];
+	for(int i = 0; i < numLiveTraffic; ++i){
+		input >> temp;
+		nodes[i].state = temp;
+		input >> tnum;
+		nodes[i].estimated_cost = tnum;
+	}
+	int numVertex = numSundayTraffic;
+	Graph g(numVertex);
+	int **arcs = new int*[numVertex];
+	for(int i = 0; i < numVertex; ++i){
+		arcs[i] = new int[numVertex];
+		for(int j = 0; j < numVertex ; ++j)
+			arcs[i][j] = INFINITY;
+	}
+	for(int i = 0; i < numLiveTraffic; ++i ){
+		int v, w;
+		v = g.LocateString(nodes, b_path[i]);
+		w = g.LocateString(nodes, e_path[i]);
+		g.addEdge(arcs, v,w, path_cost[i]);
+		//arcs[v][w] = path_cost[i];
+	}
+
+	/*Graph g(4);
+	g.addEdge(0, 1);
+	g.addEdge(0, 2);
+	g.addEdge(1, 2);
+	g.addEdge(2, 0);
+	g.addEdge(2, 3);
+	g.addEdge(3, 3);*/
+
+	int startNum = g.LocateString(nodes, startState);
+	int goalNum = g.LocateString(nodes, goalState);
+	g.BFS(arcs, nodes, startNum, goalNum);
+
+	return 0;
+}
