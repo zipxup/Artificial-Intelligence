@@ -1,0 +1,466 @@
+
+#include<fstream>
+#include<iostream>
+#include<string>
+
+using namespace std;
+#define INFINITY 1000
+
+struct Square{
+	char state;
+	int value;
+};
+
+struct Eval{
+	int row;
+	int col;
+	int score;
+	string move;
+};
+
+Eval *eval;
+int remain;
+
+class Game{
+	int width;
+	int depth;
+	char player;
+	char opponent;
+	Square **tempBoard; //when there is a change in the board, change tempBoard rather than board;
+
+	void RemainCell(Square **board);
+	int Score(Square **board);
+	bool Raid(Eval *tempEval,int node, bool isMax);
+
+public:
+	Game(int width, int depth, char player, char opponent);
+	int Minimax(Square **board, int d, bool isMax);
+	int AlphaBeta(Square **board, int d, bool isMax, int alpha, int beta);
+};
+
+Game::Game(int width, int depth, char player, char opponent){
+	this->width = width;
+	this->depth = depth;
+	this->player = player;
+	this->opponent = opponent;
+}
+
+int Game::Score(Square **board){
+	int score_player = 0;
+	int score_opponent = 0;
+	int score = 0;
+	for(int i = 0; i < width; ++i){
+		for(int j = 0; j < width; ++j){
+			if(board[i][j].state == player){
+				score_player += board[i][j].value;
+			}
+			else if (board[i][j].state == opponent){
+				score_opponent += board[i][j].value;
+			}
+		}
+	}
+	score = score_player - score_opponent;
+	return score ;
+}
+
+bool Game::Raid(Eval *tempEval, int node, bool isMax){
+	int r = tempEval[node].row;
+	int c = tempEval[node].col;
+	int left = r -1;
+	int right = r + 1;
+	int up = c - 1;
+	int down = c + 1;
+	bool raid = false;
+	if(isMax){
+		if(left >= 0 && tempBoard[left][c].state == player){
+			if( right < width && tempBoard[right][c].state == opponent){
+				tempBoard[right][c].state = player;
+				raid = true;
+			}
+			if( up >= 0 && tempBoard[r][up].state == opponent){				
+				tempBoard[r][up].state = player;
+				raid = true;
+			}
+			if( down < width && tempBoard[r][down].state == opponent){
+				tempBoard[r][down].state = player;
+				raid = true;
+			}
+		}
+		else if(right < width && tempBoard[right][c].state == player){
+			if( left >= 0 && tempBoard[left][c].state == opponent){
+				tempBoard[left][c].state = player;
+				raid = true;
+			}
+			if( up >= 0 && tempBoard[r][up].state == opponent){
+				tempBoard[r][up].state = player;
+				raid = true;
+			}
+			if( down < width && tempBoard[r][down].state == opponent){
+				tempBoard[r][down].state = player;
+				raid = true;
+			}
+		}
+		else if(up >= 0 && tempBoard[r][up].state == player){
+			if( right < width && tempBoard[right][c].state == opponent){
+				tempBoard[right][c].state = player;
+				raid = true;
+			}
+			if( left >= 0 && tempBoard[left][c].state == opponent){
+				tempBoard[left][c].state = player;
+				raid = true;
+			}
+			if( down < width && tempBoard[r][down].state == opponent){
+				tempBoard[r][down].state = player;
+				raid = true;
+			}
+		}
+		else if(down < width && tempBoard[r][down].state == player){
+			if( right < width && tempBoard[right][c].state == opponent){
+				tempBoard[right][c].state = player;
+				raid = true;
+			}
+			if( left >= 0 && tempBoard[left][c].state == opponent){
+				tempBoard[left][c].state = player;
+				raid = true;
+			}
+			if( up >= 0 && tempBoard[r][up].state == opponent){
+				tempBoard[r][up].state = player;
+				raid = true;
+			}
+		}
+	}
+	else{
+		//tempBoard[r][c].state = opponent;
+		if(left >= 0 && tempBoard[left][c].state == opponent){
+			if( right < width && tempBoard[right][c].state == player){
+				tempBoard[right][c].state = opponent;
+				raid = true;
+			}
+			if( up >= 0 && tempBoard[r][up].state == player){
+				tempBoard[r][up].state = opponent;
+				raid = true;
+			}
+			if( down < width && tempBoard[r][down].state == player){
+				tempBoard[r][down].state = opponent;
+				raid = true;
+			}
+		}
+		else if(right < width && tempBoard[right][c].state == opponent){
+			if( left >= 0 && tempBoard[left][c].state == player){
+				tempBoard[left][c].state = opponent;
+				raid = true;
+			}
+			if( up >= 0 && tempBoard[r][up].state == player){
+				tempBoard[r][up].state = opponent;
+				raid = true;
+			}
+			if( down < width && tempBoard[r][down].state == player){
+				tempBoard[r][down].state = opponent;
+				raid = true;
+			}
+		}
+		else if(up >= 0 && tempBoard[r][up].state == opponent){
+			if( right < width && tempBoard[right][c].state == player){
+				tempBoard[right][c].state = opponent;
+				raid = true;
+			}
+			if( left >= 0 && tempBoard[left][c].state == player){
+				tempBoard[left][c].state = opponent;
+				raid = true;
+			}
+			if( down < width && tempBoard[r][down].state == player){
+				tempBoard[r][down].state = opponent;
+				raid = true;
+			}
+		}
+		else if(down < width && tempBoard[r][down].state == opponent){
+			if( right < width && tempBoard[right][c].state == player){
+				tempBoard[right][c].state = opponent;
+				raid = true;
+			}
+			if( left >= 0 && tempBoard[left][c].state == player){
+				tempBoard[left][c].state = opponent;
+				raid = true;
+			}
+			if( up >= 0 && tempBoard[r][up].state == player){
+				tempBoard[r][up].state = opponent;
+				raid = true;
+			}
+		}
+	}
+	return raid;
+}
+
+
+void Game::RemainCell(Square **board){
+
+	remain = width * width;
+	for(int i = 0; i < width; ++i){
+		for(int j = 0; j < width; ++j){
+			if(board[i][j].state == player){
+				remain = remain - 1;
+			}
+			else if (board[i][j].state == opponent){
+				remain = remain - 1;
+			}
+		}
+	}
+	remain = 2 * remain;
+	eval = new Eval[remain];
+	int k = 0;
+	for(int i = 0; i < width; ++i){
+		for(int j = 0; j < width; ++j){
+			if(board[i][j].state == '.'&& k < remain){
+				eval[k].row = i;
+				eval[k].col = j;
+				eval[k].move = "Stake";
+				++k;
+				eval[k].row = i;
+				eval[k].col = j;
+				eval[k].move = "Raid";
+				++k;
+			}
+		}
+	}
+}
+int Game::Minimax(Square **board, int d, bool isMax){		
+	if(d == depth ){ 
+		return Score(board);
+	}
+	bool raid = false;
+	int s;
+	if(isMax)
+		s = -INFINITY;
+	else
+		s = INFINITY;
+	RemainCell(board);
+	if(remain == 0 ){ 
+		return Score(board);
+	}
+	int temp = remain;
+	Eval *tempEval = new Eval[temp];
+	for(int i = 0 ; i < temp; ++i){
+		tempEval[i].col = eval[i].col;
+		tempEval[i].row = eval[i].row;
+		tempEval[i].move = eval[i].move;
+	}
+	
+	tempBoard = new Square*[width];
+	for(int i = 0; i < temp; ++i){
+		for(int j = 0; j < width; ++j){
+			tempBoard[j] = new Square[width];
+			for(int k = 0; k < width; ++k){
+				tempBoard[j][k].state = board[j][k].state;
+				tempBoard[j][k].value = board[j][k].value;
+			}
+		}
+		int r = tempEval[i].row;
+		int c = tempEval[i].col;
+	
+		if(isMax){
+			tempBoard[r][c].state = player;
+			if(tempEval[i].move == "Raid"){
+				raid = Raid(tempEval, i,isMax);
+				if(raid){
+					tempEval[i].score = Minimax(tempBoard, d+1, false);
+				}
+				else{
+					tempEval[i].score = tempEval[i-1].score;
+				}
+			}
+			else
+				tempEval[i].score = Minimax(tempBoard, d+1, false);
+			s = max(s, tempEval[i].score);
+		}
+		else{
+			tempBoard[r][c].state = opponent;
+			if(tempEval[i].move == "Raid"){
+				raid = Raid(tempEval, i,isMax);
+				if(raid){
+					tempEval[i].score = Minimax(tempBoard, d+1, true);		
+				}
+				else{
+					tempEval[i].score = tempEval[i-1].score;
+				}
+			}
+			else
+				tempEval[i].score = Minimax(tempBoard, d+1, true);
+			s = min(s, tempEval[i].score);
+		}
+	}
+	if(d == 0){
+		remain = temp;
+		eval = new Eval[remain];
+		int count = 0;
+		for(int i = 0; i < remain; ++i){
+			eval[i].score = tempEval[i].score;
+			eval[i].col = tempEval[i].col;
+			eval[i].row = tempEval[i].row;
+			eval[i].move = tempEval[i].move;
+		}
+	}
+	return s;
+}
+
+int Game::AlphaBeta(Square **board, int d, bool isMax, int alpha, int beta){		
+	if(d == depth){ 
+		return Score(board);
+	}
+	bool raid = false;
+	int best;
+	if(isMax)
+		best = -INFINITY;
+	else
+		best = INFINITY;
+	RemainCell(board);
+	int temp = remain;
+	Eval *tempEval = new Eval[temp];
+	for(int i = 0 ; i < temp; ++i){
+		tempEval[i].col = eval[i].col;
+		tempEval[i].row = eval[i].row;
+		tempEval[i].move = eval[i].move;
+		if(isMax)
+			tempEval[i].score = -INFINITY;
+		else
+			tempEval[i].score = INFINITY;
+	}
+	
+	tempBoard = new Square*[width];
+	for(int i = 0; i < temp; ++i){
+		for(int j = 0; j < width; ++j){
+			tempBoard[j] = new Square[width];
+			for(int k = 0; k < width; ++k){
+				tempBoard[j][k].state = board[j][k].state;
+				tempBoard[j][k].value = board[j][k].value;
+			}
+		}
+		int r = tempEval[i].row;
+		int c = tempEval[i].col;
+	
+		if(isMax){
+			tempBoard[r][c].state = player;
+			if(tempEval[i].move == "Raid"){
+				raid = Raid(tempEval, i,isMax);
+				if(raid){
+					tempEval[i].score = AlphaBeta(tempBoard, d+1, false, alpha, beta);
+				}
+				else{
+					tempEval[i].score = tempEval[i-1].score;
+				}
+			}
+			else
+				tempEval[i].score = AlphaBeta(tempBoard, d+1, false, alpha, beta);
+			best = max(best, tempEval[i].score);
+			if( best >= beta)
+				break;
+			alpha = max(alpha, best);
+			
+		}
+		else{
+			tempBoard[r][c].state = opponent;
+			if(tempEval[i].move == "Raid"){
+				raid = Raid(tempEval, i,isMax);
+				if(raid){
+					tempEval[i].score = AlphaBeta(tempBoard, d+1, true, alpha, beta);		
+				}
+				else{
+					tempEval[i].score = tempEval[i-1].score;
+				}
+			}
+			else
+				tempEval[i].score = AlphaBeta(tempBoard, d+1, true, alpha, beta);
+			best = min(best, tempEval[i].score);
+			if( best <= alpha)
+				break;
+			beta = min(beta, best);
+		}
+	}
+	if(d == 0){
+		remain = temp;
+		eval = new Eval[remain];
+		int count = 0;
+		for(int i = 0; i < remain; ++i){
+			eval[i].score = tempEval[i].score;
+			eval[i].col = tempEval[i].col;
+			eval[i].row = tempEval[i].row;
+			eval[i].move = tempEval[i].move;
+		}
+	}
+	return best;
+}
+
+int main()
+{
+ 	ifstream input("input.txt");
+	int width;  // board width and height
+	input >> width;
+	string mode; // ��MINIMAX�� or ��ALPHABETA�� or ��COMPETITION��
+	input >> mode;
+	char player; // is either ��X�� or ��O�� and is the player which you will play on this turn
+	input >> player;
+	int depth; // the depth of your search
+	input >> depth;
+	Square **board = new Square*[width];
+	for(int i = 0; i < width; ++i){   // cell values
+		board[i] = new Square[width];
+		for(int j = 0; j < width; ++j){
+			input >> board[i][j].value;
+
+		}
+	}
+	for(int i = 0; i < width; ++i){ // board state
+		for(int j = 0; j< width; ++j){
+			input >> board[i][j].state;
+		}
+	}
+	char opponent;
+	if(player == 'X')
+		opponent = 'O';
+	else opponent = 'X';
+	Game g(width, depth, player, opponent);
+
+	int gameScore;
+	if (mode == "MINIMAX")
+		gameScore = g.Minimax( board, 0, true);
+	else if (mode == "ALPHABETA")
+		gameScore = g.AlphaBeta( board, 0, true, -INFINITY, INFINITY);
+
+	ofstream output("output.txt");
+	int row = 0;
+	char col = 0;
+	string move;
+	for(int i = 0; i < remain; ++i){
+		if(eval[i].score == gameScore){
+			int r = eval[i].row;
+			int c = eval[i].col;
+			board[r][c].state = player;
+			row = eval[i].row + 1;
+			col = char(eval[i].col + 65);
+			move = eval[i].move;
+			if(move == "Raid"){
+				if( (r - 1 >= 0) && board[r-1][c].state == opponent){
+					board[r-1][c].state = player;
+				}
+				if( (r + 1 < width) && board[r+1][c].state == opponent){
+					board[r+1][c].state = player;
+				}
+				if( (c - 1 >= 0) && board[r][c-1].state == opponent){				
+					board[r][c-1].state = player;
+				}
+				if( (c + 1 < width) && board[r][c+1].state == opponent){
+					board[r][c+1].state = player;
+				}
+			}
+			break;
+		}
+	}
+
+	output << col << row << " " << move << endl;
+	for(int i = 0; i < width; ++i){ // board state
+		for(int j = 0; j< width; ++j){
+			output << board[i][j].state;
+		}
+		output << endl;
+	}
+	return 0;
+}
